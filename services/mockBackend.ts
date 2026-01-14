@@ -154,8 +154,8 @@ class MockBackendService {
     let potentialPrize = null;
     if (!isTrial) {
         if (score >= THRESHOLDS.TIER_5) potentialPrize = PRIZES.TIER_5;
-        // Default to Tablet if level 4 is reached (just as a label in history)
-        else if (score >= THRESHOLDS.TIER_4_TABLET) potentialPrize = PRIZES.TIER_4_TABLET;
+        // Default to Phone/Tablet level 4 is reached (just as a label in history)
+        else if (score >= THRESHOLDS.TIER_4_TABLET) potentialPrize = PRIZES.TIER_4_TABLET; // Using Tablet as generic marker for T4
         // Default to TV if level 3 is reached
         else if (score >= THRESHOLDS.TIER_3_TV) potentialPrize = PRIZES.TIER_3_TV;
         else if (score >= THRESHOLDS.TIER_2) potentialPrize = PRIZES.TIER_2;
@@ -255,11 +255,12 @@ class MockBackendService {
             }
             // Group Tier 4
             else if (
+                p === PRIZES.TIER_4_PHONE ||
                 p === PRIZES.TIER_4_TABLET ||
                 p === PRIZES.TIER_4_BIKE ||
                 p === PRIZES.TIER_4_AC ||
                 p === PRIZES.TIER_4_VACUUM ||
-                p === PRIZES.TIER_4_MICROWAVE
+                p === PRIZES.TIER_4_OVEN
             ) {
                 claimedCounts.tier4++;
             }

@@ -7,6 +7,7 @@ import { ProfileScreen } from './components/UI/ProfileScreen';
 import { backend } from './services/mockBackend';
 import { ScreenType, User, THRESHOLDS, PRIZES, PRIZE_DETAILS, GameResult } from './types';
 import { sounds } from './services/SoundService';
+import { PrizeIcon } from './components/UI/PrizeIcons';
 
 const CrownIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
@@ -172,305 +173,287 @@ function App() {
     setGameState('playing');
   };
 
-  const bestScore = Math.max(score, ...userHistory.map(h => h.score), 0);
-  const isTrial = !activeCode && !isAdminTester;
-
-  // New logic: Just find next threshold to show progress
-  const getNextThreshold = () => {
-    const thresholds = Object.values(THRESHOLDS).sort((a,b) => a - b);
-    const next = thresholds.find(t => t > score);
-    if (!next) return null;
-    
-    // Find prize name for this threshold
-    const tierKey = Object.keys(THRESHOLDS).find(key => THRESHOLDS[key as keyof typeof THRESHOLDS] === next);
-    // If multiple keys map to same threshold, just pick one to show name
-    const prizeName = PRIZES[tierKey as keyof typeof PRIZES];
-    return { score: next, name: PRIZE_DETAILS[prizeName].title };
-  };
+  const bestScore = Math.max(score, ...userHistory.map(r => r.score), 0);
   
-  const nextGoal = getNextThreshold();
-
-  const getThresholdForPrize = (prizeName: string): number => {
-    const tierEntry = Object.entries(PRIZES).find(([_, name]) => name === prizeName);
-    if (!tierEntry) return 0;
-    return THRESHOLDS[tierEntry[0] as keyof typeof THRESHOLDS];
-  };
-
-  const renderPrizeModalContent = (actionButton: React.ReactNode) => {
-    if (viewingPrizeId) {
-      const details = PRIZE_DETAILS[viewingPrizeId];
-      const points = getThresholdForPrize(viewingPrizeId);
-      
-      return (
-        <div className="flex flex-col h-full animate-fade-in">
-          <button 
-            onClick={() => setViewingPrizeId(null)} 
-            className="self-start mb-4 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 flex items-center gap-1"
-          >
-            <ArrowLeftIcon /> Назад к списку
-          </button>
-          
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
-            <div className="w-full aspect-square rounded-[35px] overflow-hidden shadow-sm mb-6 bg-slate-50">
-              <img src={details.image} className="w-full h-full object-cover" alt={details.title} />
-            </div>
-            
-            <h3 className="text-2xl font-black text-slate-800 uppercase italic leading-tight mb-2">{details.title}</h3>
-            <div className="inline-block px-3 py-1 bg-emerald-50 rounded-lg text-emerald-600 text-[10px] font-black uppercase tracking-widest mb-6">
-              ТРЕБУЕТСЯ: {points} ОЧКОВ
-            </div>
-            
-            <p className="text-sm text-slate-600 leading-relaxed font-medium">
-              {details.description}
-            </p>
-          </div>
-        </div>
-      );
+  // Logic to show prize modal
+  useEffect(() => {
+    if (gameState === 'playing' || gameState === 'ended') {
+      // Logic for checking prize unlocks if needed immediately
     }
+  }, [score, gameState]);
 
-    return (
-      <div className="flex flex-col h-full">
-        <div className="text-center mb-6">
-          <BoltIcon className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
-          <h2 className="text-2xl font-black text-slate-800 uppercase italic">ПРИЗЫ И ПРАВИЛА</h2>
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Максимум 2 приза (1 + 1)</p>
-        </div>
-        
-        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-          <div className="p-4 bg-slate-50 rounded-[25px] border border-slate-100 mb-6 text-center">
-            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1">Обязательное условие</p>
-            <p className="text-xs text-slate-600 font-medium leading-relaxed">
-              Вы можете забрать <span className="text-emerald-600 font-bold">Карту Ёвар</span> (10 очков)<br/>
-              плюс <span className="text-slate-800 font-bold">ОДИН ценный приз</span> на выбор.
-            </p>
-          </div>
-          
-          <div className="space-y-3">
-            {Object.entries(PRIZES).map(([tierKey, prizeName]) => {
-              const details = PRIZE_DETAILS[prizeName];
-              const points = THRESHOLDS[tierKey as keyof typeof THRESHOLDS];
-              
-              return (
-                <div key={tierKey} className="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-[25px] shadow-sm hover:border-emerald-100 transition group cursor-pointer" onClick={() => setViewingPrizeId(prizeName)}>
-                  <div className="w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0 bg-slate-50">
-                    <img src={details.image} className="w-full h-full object-cover" alt={details.title} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-black text-slate-800 text-[10px] uppercase truncate mb-1">{details.title}</div>
-                    <div className="inline-flex px-2 py-1 bg-emerald-50 rounded-md text-[9px] text-emerald-600 font-black uppercase tracking-widest">
-                      {points} ОЧКОВ
-                    </div>
-                  </div>
-                  <button 
-                    className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 group-hover:bg-emerald-500 group-hover:text-white transition"
-                  >
-                    <ArrowRightIcon />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="mt-6 pt-4 border-t border-slate-50">
-          {actionButton}
-        </div>
-      </div>
-    );
+  const handleLogout = () => {
+      backend.logout();
+      setCurrentUser(null);
+      setScreen('register');
+      setGameState('idle');
+      setScore(0);
+      setShowCodeEntry(false);
   };
 
-  if (screen === 'admin') return <AdminPanel onBack={() => setScreen('game')} onTestGame={handleAdminTest} />;
-  
-  if (screen === 'profile' && currentUser) {
-      return <ProfileScreen user={currentUser} onBack={() => setScreen('game')} onLogout={() => { backend.logout(); setScreen('register'); }} />;
+  if (screen === 'register') {
+    return <RegisterScreen onRegisterSuccess={() => {
+        const u = backend.getCurrentUser();
+        setCurrentUser(u);
+        setScreen('game');
+        if (u && u.name.toLowerCase() !== 'admin') {
+            setShowCodeEntry(true);
+            setTrialsLeft(3 - backend.getTrialCount(u.id));
+        }
+    }} onAdminLogin={() => setScreen('admin')} />;
   }
 
-  if (screen === 'register') return <RegisterScreen onRegisterSuccess={() => { setCurrentUser(backend.getCurrentUser()); setScreen('game'); setShowCodeEntry(true); }} onAdminLogin={() => setScreen('admin')} />;
+  if (screen === 'admin') {
+    return <AdminPanel onBack={() => setScreen('register')} onTestGame={handleAdminTest} />;
+  }
+
+  if (screen === 'profile' && currentUser) {
+      return <ProfileScreen user={currentUser} onBack={() => setScreen('game')} onLogout={handleLogout} />;
+  }
 
   return (
-    <div id="game-background" className="relative w-full h-screen overflow-hidden transition-all duration-1000 bg-teal-100">
+    <div className="w-full h-full relative bg-slate-100 overflow-hidden font-sans">
+      
+      {/* Background Gradient */}
+      <div id="game-background" className="absolute inset-0 bg-gradient-to-b from-[#d6e8f5] to-[#aed9e0] transition-all duration-1000 ease-in-out"></div>
+
+      {/* Main Game Component */}
       <BelindaStackGame 
-        gameState={gameState} 
-        onGameStart={() => {}} 
         onGameOver={handleGameOver} 
-        onScoreUpdate={handleGameScoreUpdate} 
+        onScoreUpdate={handleGameScoreUpdate}
+        gameState={gameState}
+        onGameStart={() => {
+            if (gameState === 'idle') {
+                if (!activeCode && trialsLeft <= 0 && !isAdminTester) {
+                    setShowCodeEntry(true);
+                    return;
+                }
+                if (!isAdminTester && (activeCode || trialsLeft > 0)) {
+                    // Need to show tutorial if not playing yet? 
+                    // Actually Game component handles clicks to start, 
+                    // but we control state.
+                }
+            }
+        }}
       />
 
-      <div className={`absolute top-[15%] left-0 w-full z-10 flex flex-col items-center pointer-events-none transition-opacity duration-500 ${gameState === 'idle' ? 'opacity-0' : 'opacity-100'}`}>
-        <div className="text-white text-[120px] font-thin leading-none tracking-tighter drop-shadow-md">
-          {score}
-        </div>
-        <div className="flex items-center gap-2 text-white/80 font-light text-2xl -mt-2">
-          <CrownIcon />
-          <span>{bestScore}</span>
-        </div>
-      </div>
-
-      {gameState === 'idle' && !showCodeEntry && !showTutorial && !showRules && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 animate-bounce">
-           <button
-              onClick={(e) => { e.stopPropagation(); setShowCodeEntry(true); }}
-              className="bg-white/10 backdrop-blur-md border border-white/50 text-white px-10 py-6 rounded-full font-black uppercase tracking-widest text-xs shadow-2xl hover:bg-white/20 transition active:scale-95 flex items-center gap-3"
-           >
-              <TicketIcon /> 
-              <span>Ввести код</span>
-           </button>
-        </div>
-      )}
-
-      <div className="absolute top-8 left-8 z-20 flex flex-col gap-4">
-        <button 
-          onClick={() => {
-            if (gameState === 'playing') {
-               setGameState('idle');
-               setScore(0);
-            } else {
-               setScreen('profile');
-            }
-          }} 
-          className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30 transition active:scale-90 relative"
-        >
-          {gameState === 'playing' ? (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6"><path d="M15 18L9 12L15 6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          ) : (
-              <UserIcon />
-          )}
-          {currentUser?.claimedPrizes && currentUser.claimedPrizes.length > 0 && gameState !== 'playing' && (
-              <div className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>
-          )}
-        </button>
-
-        <button 
-          onClick={(e) => { e.stopPropagation(); setShowCodeEntry(true); }}
-          className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30 transition active:scale-90"
-        >
-          <TicketIcon />
-        </button>
+      {/* UI Overlay */}
+      <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-6 z-10">
         
-        <button 
-          onClick={() => { setShowRules(true); setViewingPrizeId(null); }}
-          className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30 transition active:scale-90"
-        >
-          <InfoIcon />
-        </button>
+        {/* Top Bar */}
+        <div className="flex justify-between items-start">
+          <div className="pointer-events-auto flex flex-col gap-2">
+            <button 
+              onClick={() => setShowRules(true)}
+              className="bg-white/80 backdrop-blur-md p-3 rounded-full text-slate-400 hover:text-slate-600 shadow-lg shadow-slate-200/50 transition active:scale-95"
+            >
+              <InfoIcon />
+            </button>
+            <button 
+              onClick={toggleMute}
+              className="bg-white/80 backdrop-blur-md p-3 rounded-full text-slate-400 hover:text-slate-600 shadow-lg shadow-slate-200/50 transition active:scale-95"
+            >
+              <SoundIcon muted={muted} />
+            </button>
+          </div>
+          
+          <div className="flex flex-col items-end gap-2 pointer-events-auto">
+             <div className="bg-white/90 backdrop-blur-xl px-6 py-4 rounded-[30px] shadow-xl shadow-indigo-100/50 border border-white flex flex-col items-center min-w-[100px]">
+                <span className="text-[10px] font-black uppercase text-slate-300 tracking-[0.2em] mb-1">Очки</span>
+                <span className="text-4xl font-black text-slate-800 leading-none tracking-tight">{score}</span>
+             </div>
+             
+             {currentUser && currentUser.name.toLowerCase() !== 'admin' && (
+                <div className="flex gap-2">
+                    <button 
+                        onClick={() => setScreen('profile')}
+                        className="bg-slate-800 text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-slate-900 transition flex items-center gap-2"
+                    >
+                       <UserIcon /> {currentUser.name}
+                    </button>
+                    {!activeCode && (
+                        <button 
+                            onClick={handleForceCodeEntry}
+                            className="bg-white text-indigo-500 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-slate-50 transition flex items-center gap-2"
+                        >
+                            <TicketIcon /> Ввести код
+                        </button>
+                    )}
+                </div>
+             )}
+          </div>
+        </div>
 
-        <button onClick={toggleMute} className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30 transition active:scale-90">
-          <SoundIcon muted={muted} />
-        </button>
+        {/* Bottom Bar - Only show when IDLE (Start Screen) */}
+        {gameState === 'idle' && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="text-center animate-fade-in pointer-events-auto">
+                    <div className="mb-4">
+                        <BoltIcon className="w-12 h-12 text-slate-800 mx-auto animate-bounce" />
+                    </div>
+                    <h1 className="text-5xl md:text-7xl font-black text-slate-800 uppercase italic tracking-tighter mb-4 drop-shadow-sm leading-none">
+                        Stack<br/><span className="text-emerald-500">Challenge</span>
+                    </h1>
+                    <p className="text-slate-500 font-bold uppercase tracking-[0.3em] text-xs mb-10">Нажми чтобы начать</p>
+                    
+                    {activeCode && (
+                        <div className="bg-emerald-500 text-white px-6 py-2 rounded-full inline-block text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-200 animate-pulse">
+                            Активен код: {activeCode}
+                        </div>
+                    )}
+                    {!activeCode && !isAdminTester && trialsLeft > 0 && (
+                        <div className="bg-slate-800 text-white px-6 py-2 rounded-full inline-block text-[10px] font-black uppercase tracking-widest shadow-xl">
+                            Пробный режим ({trialsLeft})
+                        </div>
+                    )}
+                </div>
+            </div>
+        )}
+
       </div>
 
-      {(currentUser?.name.toLowerCase() === 'admin' || isAdminTester) && (
-        <div className="absolute top-8 right-8 z-20 flex gap-2">
-          <button 
-            onClick={() => { setScreen('admin'); setIsAdminTester(false); }} 
-            className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30 transition active:scale-90"
-          >
-            <SettingsIcon />
-          </button>
-        </div>
+      {/* Code Entry Modal */}
+      {showCodeEntry && (
+        <CodeScreen 
+            onCodeSuccess={(code) => startTutorial(code)} 
+            onClose={() => {
+                if (trialsLeft > 0) setShowCodeEntry(false);
+                // else keep open? User needs code to play if no trials
+            }} 
+            onLogout={handleLogout}
+        />
       )}
 
-      {showCodeEntry && !isAdminTester && (
-        <CodeScreen onCodeSuccess={startTutorial} onClose={() => setShowCodeEntry(false)} onLogout={() => { backend.logout(); setScreen('register'); }} />
-      )}
-
-      {/* MERGED TUTORIAL/RULES MODAL */}
+      {/* Tutorial Modal */}
       {showTutorial && (
-        <div className="absolute inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-xl p-6 animate-fade-in">
-          <div className="bg-white w-full max-w-sm h-[70vh] max-h-[600px] rounded-[45px] p-8 shadow-2xl relative overflow-hidden">
-            {renderPrizeModalContent(
-              <button onClick={startGameAfterTutorial} className="w-full py-5 bg-slate-800 text-white rounded-[30px] font-black uppercase tracking-widest text-xs shadow-xl flex items-center justify-center gap-2 transition active:scale-95 hover:bg-slate-900">
-                <BoltIcon className="w-4 h-4" /> Начать игру
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* GAME OVER MODAL */}
-      {gameState === 'ended' && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm px-6 animate-fade-in">
-          <div className="bg-slate-300/40 backdrop-blur-2xl w-full max-w-xs rounded-[55px] p-8 text-center shadow-2xl relative overflow-hidden border border-white/30">
-            <h2 className="text-[10px] font-black text-slate-700 uppercase tracking-[0.4em] mb-4 opacity-70">Твой результат</h2>
-            <div className="text-8xl font-thin text-slate-800 mb-8 leading-none">{score}</div>
-            
-            {isTrial ? (
-              <div className="mb-8 space-y-4">
-                 <div className="p-4 bg-white/40 rounded-[35px] border border-white/30 shadow-inner backdrop-blur-sm">
-                    <p className="text-[9px] text-slate-600 font-black uppercase tracking-widest leading-relaxed">
-                      В пробном режиме<br/>призы не выдаются
-                    </p>
-                 </div>
-                 {trialsLeft > 0 ? (
-                    <p className="text-[9px] text-slate-200 font-bold uppercase tracking-[0.2em]">
-                      Осталось попыток: <span className="text-white text-base">{trialsLeft}</span>
-                    </p>
-                 ) : (
-                    <div className="space-y-2">
-                       <p className="text-[9px] text-slate-200 font-bold uppercase tracking-[0.2em]">Попытки закончились</p>
-                       <p className="text-[8px] text-slate-600 font-bold uppercase tracking-wider leading-relaxed">
-                         Купите сироп Ламбротин,<br/>чтобы получить код для игры
-                       </p>
-                    </div>
-                 )}
-              </div>
-            ) : (
-                <div className="mb-8 p-5 bg-white/40 rounded-[35px] border border-white/30 shadow-inner backdrop-blur-sm">
-                  {score >= THRESHOLDS.TIER_1 ? (
-                      <div className="space-y-2">
-                          <p className="text-[9px] text-emerald-700 font-black uppercase tracking-widest">
-                            Отличный результат!
-                          </p>
-                          <p className="text-xs text-slate-700 font-medium leading-relaxed">
-                            Вы разблокировали призы. Перейдите в профиль, чтобы выбрать приз.
-                          </p>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-md p-6">
+              <div className="bg-white w-full max-w-sm p-8 rounded-[50px] shadow-2xl animate-fade-in relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-2 bg-emerald-400"></div>
+                  <h3 className="text-2xl font-black text-slate-800 uppercase italic mb-6 text-center">Как играть</h3>
+                  
+                  <div className="space-y-6">
+                      <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-500 font-black text-xl shadow-sm">1</div>
+                          <p className="text-xs font-bold text-slate-500 uppercase leading-relaxed">Нажимай на экран, когда блок находится над башней</p>
                       </div>
-                  ) : nextGoal && (
-                    <p className="text-[9px] text-slate-700 font-black uppercase tracking-[0.15em] leading-relaxed">
-                        <span className="opacity-60">не хватило</span> <span className="text-emerald-700 text-lg">{nextGoal.score - score}</span> {score % 10 === 1 ? 'очка' : 'очков'}<br/>
-                        <span className="opacity-60">до приза:</span> {nextGoal.name}
-                    </p>
-                  )}
-                </div>
-            )}
+                      <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-500 font-black text-xl shadow-sm">2</div>
+                          <p className="text-xs font-bold text-slate-500 uppercase leading-relaxed">Лишние части блока будут обрезаны</p>
+                      </div>
+                      <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-500 font-black text-xl shadow-sm">3</div>
+                          <p className="text-xs font-bold text-slate-500 uppercase leading-relaxed">Набери очки, чтобы открыть призы!</p>
+                      </div>
+                  </div>
 
-            {score >= THRESHOLDS.TIER_1 && !isTrial && (
-                 <button onClick={() => setScreen('profile')} className="w-full py-4 mb-3 bg-emerald-500 text-white font-black uppercase rounded-[30px] shadow-lg tracking-widest text-xs flex items-center justify-center gap-2 transition active:scale-95 hover:bg-emerald-600 border border-emerald-400">
-                    <UserIcon /> К выбору приза
-                 </button>
-            )}
-
-            {isTrial && (
-                <button onClick={() => { setShowRules(true); setViewingPrizeId(null); }} className="w-full py-4 mb-3 bg-white/80 text-slate-700 font-black uppercase rounded-[30px] shadow-lg tracking-widest text-xs flex items-center justify-center gap-2 transition active:scale-95 hover:bg-white border border-white/50 backdrop-blur-sm">
-                    <InfoIcon /> Узнать про призы
-                </button>
-            )}
-
-            {isTrial && trialsLeft <= 0 ? (
-               <button onClick={handleForceCodeEntry} className="w-full py-5 bg-slate-800 text-white font-black uppercase rounded-[30px] shadow-lg tracking-widest text-xs flex items-center justify-center gap-2 transition active:scale-95 hover:bg-slate-900 border border-slate-700">
-                  <TicketIcon /> Ввести код
-               </button>
-            ) : (
-               <button onClick={handleRestart} className="w-full py-5 bg-slate-800 text-white font-black uppercase rounded-[30px] shadow-lg tracking-widest text-xs flex items-center justify-center gap-2 transition active:scale-95 hover:bg-slate-900 border border-slate-700">
-                  <BoltIcon className="w-4 h-4" /> {isTrial ? 'Еще раз' : 'Играть снова'}
-               </button>
-            )}
+                  <button 
+                    onClick={startGameAfterTutorial}
+                    className="w-full mt-8 py-5 bg-slate-800 text-white font-black rounded-[25px] shadow-xl uppercase tracking-widest text-xs hover:bg-slate-900 transition active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    Погнали! <ArrowRightIcon />
+                  </button>
+              </div>
           </div>
-        </div>
       )}
 
-      {/* INFO BUTTON MODAL */}
+      {/* Rules Modal */}
       {showRules && (
-        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-6" onClick={() => setShowRules(false)}>
-          <div className="bg-white w-full max-w-sm h-[70vh] max-h-[600px] rounded-[45px] p-8 shadow-2xl relative overflow-hidden" onClick={e => e.stopPropagation()}>
-            {renderPrizeModalContent(
-              <button onClick={() => setShowRules(false)} className="w-full py-5 bg-slate-100 text-slate-500 rounded-[30px] font-black uppercase tracking-widest text-xs hover:bg-slate-200 transition">
-                Закрыть
-              </button>
-            )}
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 backdrop-blur-md p-6" onClick={() => setShowRules(false)}>
+          <div className="bg-white w-full max-w-md p-10 rounded-[50px] shadow-2xl animate-fade-in relative" onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowRules(false)} className="absolute top-8 right-8 text-slate-300 hover:text-slate-500 text-2xl font-light">&times;</button>
+            <h2 className="text-2xl font-black text-slate-800 uppercase italic mb-8 tracking-tight">Правила</h2>
+            
+            <div className="space-y-6 overflow-y-auto max-h-[60vh] custom-scrollbar pr-2">
+                <div>
+                    <h4 className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-2">Цель</h4>
+                    <p className="text-xs font-medium text-slate-500 leading-relaxed">Построй самую высокую башню из блоков Ламбротин. Чем точнее попадание, тем выше башня.</p>
+                </div>
+                <div>
+                    <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-2">Призы</h4>
+                    <div className="space-y-3 mt-3">
+                        {Object.entries(THRESHOLDS).map(([key, val]) => (
+                            <div key={key} className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <span className="text-[10px] font-bold text-slate-600 uppercase">{PRIZES[key as keyof typeof PRIZES]}</span>
+                                <span className="text-[10px] font-black text-slate-400">{val} очков</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div>
+                    <h4 className="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-2">Важно</h4>
+                    <p className="text-xs font-medium text-slate-500 leading-relaxed">Для получения призов необходимо ввести код с упаковки. Пробная игра не дает права на призы.</p>
+                </div>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Game Over Screen */}
+      {gameState === 'ended' && (
+        <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-slate-900/20 backdrop-blur-sm p-6">
+           <div className="bg-white p-10 rounded-[60px] shadow-2xl text-center max-w-sm w-full animate-fade-in relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+              
+              <div className="mb-6">
+                <div className="inline-block p-4 rounded-full bg-slate-50 mb-4 shadow-inner">
+                    <CrownIcon />
+                </div>
+                <h2 className="text-4xl font-black text-slate-800 uppercase italic tracking-tighter mb-1">Конец Игры</h2>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Твой результат</p>
+              </div>
+
+              <div className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-slate-800 to-slate-600 mb-8 leading-none">
+                {score}
+              </div>
+
+              {score > bestScore && (
+                 <div className="mb-8 bg-amber-50 text-amber-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest inline-block border border-amber-100 animate-pulse">
+                    Новый Рекорд!
+                 </div>
+              )}
+
+              <div className="space-y-3">
+                  <button 
+                    onClick={handleRestart}
+                    className="w-full py-5 bg-slate-800 text-white font-black rounded-[30px] shadow-xl shadow-slate-300 uppercase tracking-widest text-xs hover:bg-slate-900 transition active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center text-[10px]">↺</div>
+                    Играть снова
+                  </button>
+                  
+                  {currentUser && currentUser.name.toLowerCase() !== 'admin' && (
+                      <button 
+                        onClick={() => setScreen('profile')}
+                        className="w-full py-5 bg-white text-slate-600 font-black rounded-[30px] border-2 border-slate-100 uppercase tracking-widest text-xs hover:bg-slate-50 transition active:scale-95"
+                      >
+                        Мои Призы
+                      </button>
+                  )}
+              </div>
+           </div>
+        </div>
+      )}
+      
+      {/* Prize Unlocked Modal (Transient) */}
+      {viewingPrizeId && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-6 animate-fade-in" onClick={() => setViewingPrizeId(null)}>
+            <div className="bg-white w-full max-w-xs p-8 rounded-[45px] text-center shadow-2xl relative overflow-hidden" onClick={e => e.stopPropagation()}>
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-emerald-50/50 to-transparent pointer-events-none"></div>
+                <div className="relative z-10">
+                    <div className="w-24 h-24 mx-auto mb-6 rounded-3xl flex items-center justify-center bg-white shadow-2xl ring-4 ring-white/50 text-emerald-500">
+                        {/* Replaced img with PrizeIcon */}
+                        <PrizeIcon name={PRIZE_DETAILS[viewingPrizeId].icon} className="w-12 h-12" />
+                    </div>
+                    <h3 className="text-xl font-black text-slate-800 uppercase italic mb-2 leading-tight">Открыт приз!</h3>
+                    <p className="text-sm font-bold text-emerald-500 uppercase tracking-wide mb-6">{PRIZE_DETAILS[viewingPrizeId].title}</p>
+                    <button onClick={() => setViewingPrizeId(null)} className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition">
+                        Круто!
+                    </button>
+                </div>
+            </div>
+        </div>
+      )}
+
     </div>
   );
 }

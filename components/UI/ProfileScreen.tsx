@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, GameResult, PRIZES, PRIZE_DETAILS, THRESHOLDS } from '../../types';
 import { backend } from '../../services/mockBackend';
+import { PrizeIcon } from './PrizeIcons';
 
 const BoltIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
@@ -199,8 +200,9 @@ export const ProfileScreen = ({ user: initialUser, onBack, onLogout }: ProfileSc
             className={`relative p-4 rounded-[30px] border transition-all duration-300 overflow-hidden group cursor-pointer ${cardStyle}`}
         >
             <div className="flex gap-4 items-center relative z-10">
-                <div className={`w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0 bg-white ${isConfirmed ? 'ring-2 ring-white/30' : ''}`}>
-                    <img src={details.image} className="w-full h-full object-cover" alt={details.title} />
+                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 bg-white ${isConfirmed ? 'ring-2 ring-white/30 text-emerald-500' : 'text-indigo-500'}`}>
+                    {/* Replaced img with PrizeIcon */}
+                    <PrizeIcon name={details.icon} className="w-8 h-8" />
                 </div>
                 <div className="flex-1 min-w-0">
                     <h4 className={`text-[10px] font-black uppercase tracking-wider mb-1 leading-tight ${isConfirmed ? 'text-white' : 'text-slate-800'}`}>

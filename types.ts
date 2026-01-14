@@ -60,88 +60,88 @@ export const PRIZE_DETAILS = {
   [PRIZES.TIER_1]: {
     title: 'Карта «Ёвар»',
     description: 'Обязательный базовый приз. Карта лояльности со скидками в сети «Ёвар».',
-    image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=800',
+    icon: 'card',
     isValuable: false
   },
   [PRIZES.TIER_2]: {
     title: 'Беспроводные наушники',
     description: 'Удобные наушники с отличным звучанием и долгим зарядом.',
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=800',
+    icon: 'headphones',
     isValuable: true
   },
   // --- TIER 3 ---
   [PRIZES.TIER_3_TV]: {
     title: 'Телевизор',
     description: 'Современный Smart TV с ярким экраном для любимых фильмов.',
-    image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?auto=format&fit=crop&q=80&w=800',
+    icon: 'tv',
     isValuable: true
   },
   [PRIZES.TIER_3_WATCH]: {
     title: 'Смарт часы',
     description: 'Умный гаджет для отслеживания активности и уведомлений.',
-    image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=800',
+    icon: 'watch',
     isValuable: true
   },
   [PRIZES.TIER_3_COFFEE]: {
     title: 'Кофемашина',
     description: 'Для приготовления ароматного кофе каждое утро.',
-    image: 'https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?auto=format&fit=crop&q=80&w=800',
+    icon: 'coffee',
     isValuable: true
   },
   [PRIZES.TIER_3_SPEAKER]: {
     title: 'Беспроводные колонки',
     description: 'Портативная аудиосистема с мощным басом.',
-    image: 'https://images.unsplash.com/photo-1545459720-aac3e5c2fa0b?auto=format&fit=crop&q=80&w=800',
+    icon: 'speaker',
     isValuable: true
   },
   [PRIZES.TIER_3_HUMIDIFIER]: {
     title: 'Увлажнитель воздуха',
     description: 'Поддерживает комфортный климат в вашем доме.',
-    image: 'https://images.unsplash.com/photo-1585776245991-cf79dd8fc176?auto=format&fit=crop&q=80&w=800',
+    icon: 'air',
     isValuable: true
   },
   // --- TIER 4 ---
   [PRIZES.TIER_4_PHONE]: {
     title: 'Смартфон',
     description: 'Современный смартфон с отличной камерой и быстрым процессором.',
-    image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&q=80&w=800',
+    icon: 'phone',
     isValuable: true
   },
   [PRIZES.TIER_4_TABLET]: {
     title: 'Планшет',
     description: 'Удобный планшет для работы, учебы и развлечений.',
-    image: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&q=80&w=800',
+    icon: 'tablet',
     isValuable: true
   },
   [PRIZES.TIER_4_BIKE]: {
     title: 'Велосипед',
     description: 'Надежный велосипед для прогулок и активного отдыха.',
-    image: 'https://images.unsplash.com/photo-1485965120184-e224f7a1adb1?auto=format&fit=crop&q=80&w=800',
+    icon: 'bike',
     isValuable: true
   },
   [PRIZES.TIER_4_AC]: {
     title: 'Кондиционер',
     description: 'Мощный кондиционер для прохлады летом и тепла зимой.',
-    image: 'https://images.unsplash.com/photo-1614631641049-5f28434d3536?auto=format&fit=crop&q=80&w=800',
+    icon: 'ac',
     isValuable: true
   },
   [PRIZES.TIER_4_VACUUM]: {
     title: 'Пылесос',
     description: 'Современный пылесос для идеальной чистоты в доме.',
-    image: 'https://images.unsplash.com/photo-1588636657989-73bd27c97561?auto=format&fit=crop&q=80&w=800',
+    icon: 'vacuum',
     isValuable: true
   },
   [PRIZES.TIER_4_OVEN]: {
     title: 'Духовая печь',
     description: 'Электрическая печь для выпечки и запекания блюд.',
-    image: 'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?auto=format&fit=crop&q=80&w=800',
+    icon: 'oven',
     isValuable: true
   },
   // --- TIER 5 ---
   [PRIZES.TIER_5]: {
     title: 'Поездка в Грузию',
     description: 'Главный приз. Незабываемое путешествие: горы, море и гостеприимство.',
-    image: 'https://images.unsplash.com/photo-1565008576549-57569a49371f?auto=format&fit=crop&q=80&w=800',
+    icon: 'trip',
     isValuable: true
   }
 };
